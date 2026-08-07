@@ -131,7 +131,66 @@ Criando um Hello, World!!!
 
 -> Profile -> New profile
 -> Extensions:
-- PHP InteliPhense (A do Elefantinho): AutoCompletar (Snipets)
+- PHP IntelePhense (A do Elefantinho): AutoCompletar (Snippets)
 - PHP Debug (Xdebug): Acha erros em linha de código
 - PHP CS FIXER: Formatação padrão do código (Identação)
 - PHP Server: Sobe um servidor local para acompanhamento em tempo real
+
+##### Estudo de variáveis e constantes em PHP
+
+Declarar variáveis é alocar um espaço na memória que permite a inclusão e manipulação de dados.
+
+**Variáveis**
+
+- Devem ser declaradas usando "$" antes do nome da variável
+- Podem ser String, Numérica (Int e float), Booleanas e Nulas. Não permite declaração de Undefined
+- São não tipadas (não precisa declarar o tipo na criação), a tipagem é atribuida ao adicionar o valor
+- Usar o "declare(strict_types=1);" na primeira linha do arquivo => blindar o sistema contra conflitos de tipos de variáveis.
+
+**Constantes**
+
+- Não podem ser modificadas ou redeclaradas após a criação
+- Pode ser criada usando "const" ou "define"
+- Não permitem interpolação
+
+##### Estudo de operadores
+
+**Aritméticos**: São usados para realizar calculos.
+
+| Operador | Nome | Exemplo | Resultado |
+|---|---|---|---|
+| + | Adição | 10 + 5 | 15 |
+| - | Subtração | 10 - 5 | 5 |
+| * | Multiplicação | 10 * 5 | 50 |
+| / | Divisão | 10 / 5 | 2 |
+| % | Módulo (resto) | 10 % 3 | 1 (10 div por 3, da 3 e sobra 1) |
+| ** | Expoente | 2 ** 3 | 8 (2 elevado a 3) |
+
+#### Obs: O operador % é o melhor amigo de um programador, permite ordenar listas e orgazinar fila e pilhas.
+
+**Relacionais**: São usados para comparar 2 ou mais valores, o resultado de uma operação relacional é sempre uma booleana (true, false).
+
+| Operador | Nome | Exemplo | Resultado |
+|---|---|---|---|
+| == | Igual a | 10 == 10 | True |
+| === | Igualdade Estrita (compara o valor e o tipo das variáveis) | "10" === 10 | False |
+| != | Diferente de | 5 != 7 | True |
+| !== | Diferença Estrita (compara o valor e o tipo também) | "10" !== 10 | True |
+| > | Maior que | 8 > 24 | False |
+| < | Menor que | 10 < 5 | False |
+| >= | Maior ou igual que | 40 >= 36 | True |
+| <= | Menor ou igual que | 30 <= 30 | True |
+
+**Lógicos**: Permite a combinação entre sentenças.
+
+- Operador AND (E) -> && : Para o resultado ser verdadeiro TODAS as combinações precisam ser verdadeiras
+    - true && true -> true
+    - false && false -> false
+
+- Operador OR (OU) -> || : Para o resultado ser verdadeiro, basta APENAS UMA condição ser verdadeira
+    - false || true -> true
+    - false || false -> false
+
+- Operador NOT (NÃO) -> ! : Inverte a lógica da sentença
+    - !true -> false
+    - !false -> true
