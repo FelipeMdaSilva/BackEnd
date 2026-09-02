@@ -680,3 +680,127 @@ function saudar() : string{
 A função `saudar()` não conhece a variável global `$nome`. Ocasionando um erro no sistema.
 
 > **Resumo**: váriaveis protegem os dados internos da função; parâmetros são o caminho recomendado para evutar erros e enviar informações, e `return` é usado para devolver um resultado ao código que chamou a função.
+
+
+--- 
+
+### Semana 5 - Arrays e manipulação avançada de dados
+
+Um array (também conhecido como vetor), é uma estrutura de dados usada para armazenar vários valores em uma única váriavel.
+
+**Tipos de arrays em PHP**:
+
+- Indexados/Ordenados (númericos): Usam números inteiros como índices (chaves), que começam em zero por padrão;
+- Associativos/Não ordenados (strings): Usam chaves (strings) para identificar valores;
+- Multidimensionais: Contêm um ou mais arrays dentro de outros arrays.
+
+**Exemplo de arrays:**
+
+```php
+// Array indexado
+$frutas = ["maça", "banana", "laranja"];
+
+// Array associativo
+$capitais = [
+    "SP" => "São Paulo",
+    "MG" => "Minas Gerais",
+    "RJ" => "Rio de Janeiro",
+    "ES" => "Vitória",
+]
+
+// Acessando dados
+echo $fruta[0]; // => "Maça"
+echo $capitais["SP"]; // => "São Paulo"
+
+```
+
+> OBS: Em arrays associativos, nos trocamoss os nº dos índices por nomes (Chaves/Keys). A setinha => significa "recebe" 
+
+**Arrays Multidimensionais (Banco de Dados na memória)**
+
+É aqui que o "BackEnd" começa de verdade. O array multidimensional é o formato como os Banco de Dados chegam como resposta as solicitações feitas pela API.
+
+**Exemplo de aplicação de array multidimensional:**
+
+```php
+
+$clientes = [
+    ["id" => 1, "nome" => "Ana", "email" => "ana@email.com", "ativo" => true],
+    ["id" => 2, "nome" => "Bruno", "email" => "bruno@gmail.com", "ativo" => false],
+    ["id" => 3, "nome" => "Carlos", "email" => "carlos@hotmail.com", "ativo" => true]
+];
+
+// Como acessar o email do Bruno
+echo $clientes[1]["email"]; // => bruno@gmail.com
+
+```
+
+#### O melhor amigo dos Arrays: `Foreach`
+
+O laço de repetição especial para arrays. O `foreach` percorre cada elemento de um array.
+
+**Exemplo de aplicação:**
+
+```php
+foreach($clientes as $clienteAtual) {
+    echo $clienteAtual["nome"];
+    echo $clienteAtual["email"];
+}
+// Vai imprimir nome e email de todos os clientes do array
+
+```
+
+#### Transformações de Arrays (Arrow Function)
+
+São usadas em filtragem e mapeamento de dados de um array.
+
+- `array_filter`
+Serve para buscar dados e devolve apenas os dados que passarem pelo filtro.
+
+**Exemplo de aplicação:**
+
+```php
+$clientesAtivos = array_filter($clientes, fn($c) => $c["ativo"] == true);
+
+// Novo array, tera apenas os clientes que ativo for igual a true
+```
+
+- `array_map`
+Serve para alterar todos os dados de uma lista de uma única vez
+
+**Exemplo de aplicação:**
+
+```php
+$produtos = [
+    ["id"=>1, "preco"=10.00, "setor"=>"jardim"],
+    ["id"=>2, "preco"=15.90, "setor"=>"ferramentas"],
+    ["id"=>3, "preco"=20.00, "setor"=>"jardim"]
+];
+
+// Ajuste de preço em 10%
+$produtosAjustados = array_map(fn($p) => $p[preco] = $p[preco] * 1.1, $produtos);
+```
+
+#### Debugando um array (Kit primeiro socorros)
+
+- `print_r`
+função usada para exibir informações sobre váriaveis de forma legível em linguagem natural
+
+```php
+print_r($frutas);
+
+// Array
+(
+    [0] => "maça",
+    [1] => "banana",
+    [2] => "laranja",
+)
+```
+
+- `var_dump`
+Exibe com mais detalhes as informações de um array ou variável em PHP
+
+```php
+echo var_dump($frutas);
+// Mostra tudo: tipo de dados, tamanho e o valor
+```
