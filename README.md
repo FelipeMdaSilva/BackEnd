@@ -804,3 +804,4 @@ Exibe com mais detalhes as informações de um array ou variável em PHP
 echo var_dump($frutas);
 // Mostra tudo: tipo de dados, tamanho e o valor
 ```
+
