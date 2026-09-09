@@ -6,6 +6,7 @@ Escola SENAI Americana
 
 2º Semestre 2026
 
+
 ## Objetivos do curso
 
 - Desenvolver aplicações web Server Side, utilizando a linguagem PHP.
@@ -17,13 +18,16 @@ Escola SENAI Americana
 - Arquitetura MVC;
 - Utilização do Framework Laravel;
 
+
 ## Cronograma do Semestre 
 
 Carga Horária: 105h
 
 Duração: 20 Semanas
 
+
 ### Semana 1: Introdução ao BackEnd e Configuração do Ambiente PHP
+
 
 #### O que é BackEnd?
 
@@ -57,13 +61,16 @@ O desenvolvimento Back-End é uma das áreas mais cruciais da Tecnologia da Info
 
 - Modelos de Trabalho: Alta flexibilidade com vagas presenciais, híbridas e remotas (inclusive com oportunidades internacionais).
 
+
 #### Ciclo de vida da Requisição HTTP
+
 
 ##### O que é HTTP
 
 **HTTP**, ou seja Hypertext Transfer Protocol, é um protocolo de comunicação utilizado para transferência de informações na WWW (World Wide Web) e em outros sistemas de redes.
 
 O HTTP é a base pra que o cliente e um servidor Web troquem informações. Ele permite a requisição e a resposta de recursos, como imagens, arquivos e as próprias páginas web, por meio de mensagens padrão (protocolo).
+
 
 ##### Como Funciona o HTTP
 
@@ -86,6 +93,7 @@ graph TD
 
 ```
 
+
 ### Como funciona na prática o BackEnd
 
 - **Ação do usuário**: Envia uma solicitação pela UI (Interface do Usuário).
@@ -93,6 +101,7 @@ Exemplo de UI: Tela do celular, Navegador de Internet, Alexa ...
 - **Envio da requisição**: A UI transforma a ação do usuário em uma requisição HTTP
 - **O processamento BackEnd**: o código BackEnd recebe o pedido, valida os dados e decide o que fazer (Ex: consulta uma informação no banco de dados)
 - **Resposta**: O servidor devolve o resultado para a UI (Ex: um login autorizado, uma compra confirmada, ...)
+
 
 #### Tipos de requisição HTTP
 
@@ -102,13 +111,17 @@ Os tipos de requisição HTTP indicam a ação que o usuário deseja executar no
 - **POST**: Envia dados novos para **criar** algo ou processar informações.
 - **PUT/PATCH**: Modifica dados já existentes. **PUT** -> Atualização total dos dados. **PATCH** -> Atualização parcial dos dados.
 - **DELETE**: Apaga um dado do servidor.
+
 ---
 
+
 #### Iniciando o PHP
+
 
 ##### O que é PHP
 
 **PHP** (Hypertext PreProcessor) é uma linguagem de programação interpretada e open source, focada no desenvolvimento de sistemas para web, pode ser usada junto com o HTML para criação de páginas web dinâmicas.
+
 
 ##### Instalando o PHP
 
@@ -119,13 +132,16 @@ Os tipos de requisição HTTP indicam a ação que o usuário deseja executar no
 - Adicionar a pasta do PHP (C:\src\php) as variáveis de ambiente do sistema (PATH) 
 - Verificar a instalação rodando o comando php --version
 
+
 ##### Contextualizando o PHP
 
 O PHP de fato é uma das linguagens de programação mais populares da atualidade. Ela permite que você crie aplicações web robustas, de uma maneira muito simplificada e direto ao ponto. Sem contar que a linguagem traz diversos recursos que facilitam e aceleram o processo de desenvolvimento de sites e sistemas para web. E além do mais, ela ainda tem um ótimo ecossistema, uma excelente comunidade e um grande mercado de trabalho.
 
+
 ##### Criando minha primeira aplicação em PHP
 
 Criando um Hello, World!!!
+
 
 ##### Criando o perfil de PHPVanilla
 
@@ -135,6 +151,7 @@ Criando um Hello, World!!!
 - PHP Debug (Xdebug): Acha erros em linha de código
 - PHP CS FIXER: Formatação padrão do código (Identação)
 - PHP Server: Sobe um servidor local para acompanhamento em tempo real
+
 
 ##### Estudo de variáveis e constantes em PHP
 
@@ -155,7 +172,9 @@ Declarar variáveis é alocar um espaço na memória que permite a inclusão e m
 
 ---
 
+
 ### Semana 2 - Operadores em PHP (Aritméticos, Relacionais e Lógicos)
+
 
 #### Estudo de operadores
 
@@ -169,6 +188,7 @@ Declarar variáveis é alocar um espaço na memória que permite a inclusão e m
 | / | Divisão | 10 / 5 | 2 |
 | % | Módulo (resto) | 10 % 3 | 1 (10 div por 3, da 3 e sobra 1) |
 | ** | Expoente | 2 ** 3 | 8 (2 elevado a 3) |
+
 
 #### Obs: O operador % é o melhor amigo de um programador, permite ordenar listas e organizar fila e pilhas.
 
@@ -199,12 +219,14 @@ Declarar variáveis é alocar um espaço na memória que permite a inclusão e m
     - !true -> false
     - !false -> true
 
+
 ### Semana 3 - Estrutra de Controle de Dados (Condicionais e Repetição)
 
 - **Conteúdo**: Estruturas `if`, `else`, `elseif`, operadores ternários, `match` => substituto do `switch/case`, loops `for`, `while`, `do-while` e `foreach`
 
 
 #### Estrutura de controle de Dados ajudam no processo de automatização em programas e sistemas 
+
 
 ##### Condicionais (IF, ELSE, ELSEIF)
 
@@ -268,6 +290,7 @@ graph LR
 
 ```
 
+
 ### *OBS*: sempre usar `elseif` para situações que precisam de mais de uma condição, ou seja, fazer o encadeamento das condições.
 
 - Uso **Errado** do if
@@ -291,6 +314,7 @@ if($valorCompra < 100) {
 
 
 ##### Operadores Ternários
+
 Um atalho para a estrutura condicional `if/else`, normalmente escrito em uma única linha de código.
 
 `Condição ? verdadeira : falso`
@@ -307,6 +331,8 @@ $status = ($idade >= 18) ? "Maior de idade" : "Menor de idade";
 $status2 = ($idade < 18) ? "Criança" : ($idade < 60) ? "Adulto" : "Idoso";
 
 ```
+
+
 ##### Expressão Condicional `match` (PHP 8)
 
 No mercado de PHP atual, não se usa mais uma dezena de `if/elseif` para checar valores fixos, e o antigo `switch/case` caiu em desuso. Agora usamos o `match`. Ele compara um valor e retorna diretamente o resultado.
@@ -342,7 +368,10 @@ $nomeDiaSemana = match($diaSemana) {
 };
 
 ```
+
+
 ---
+
 
 ##### Laços de Repetição 
 
@@ -414,7 +443,10 @@ do {
 
 Obs: Uso ideal do `do-while`, menus de sistema ou sistema de solicitações de dados, sistemas interativos;
 
+
 ---
+
+
 
 ##### Laço de Repetição `for`
 
@@ -447,6 +479,7 @@ for($mes=1; mes<=12; $mes++) {
 ```
 
 Nesse exemplo, `$mes` começa em 1, o laço continua enquanto `$mes` for menor ou igual a 12 e, ao final de cada repetição, `$mes` o contador aumenta em 1
+
 
 ##### Laço de Repetição `foreach`
 
@@ -484,16 +517,23 @@ foreach($precos as $produto => $preco) {
 
 #### Desafio: Simulador de cobrança (FINANSENAI)
 
+
 #### Desafio Final
 
----
+
 ---
 
+---
+
+
 ### Semana 4 - Modularização com Funções
+
+
 
 #### Principio do DRY (Don´t Repeat Yourself)
 
 Se uma lógica foi escrita duas ou mais vezes dentro de um código, essa lógica deve virar uma função.
+
 
 #### Funções Nativas do PHP
 
@@ -559,6 +599,7 @@ As funções abaixo já fazem parte do PHP e podem ser chamadas diretamente no c
 
 Consulte também a [referência de funções do PHP](https://www.php.net/manual/pt_BR/funcref.php) para pesquisar a sintaxe, os parâmetros e os valores para cada função.
 
+
 #### Funções Customizadas (Criando suas próprias máquinas)
 
 Quando o PHP não tem a função que queremos, nós a criamos!
@@ -581,6 +622,7 @@ echo "Total da compra: R$ " . round($total,2);
 ```
 
 A função `calcularTotal()` pode ser reutilizada em uma página, relatório ou teste. O `echo` aparece somente fora da função, no momento de apresentar o resultado para o usuário
+
 
 ##### Padrão de uso corporativo (PHP 8 Strict Types)
 
@@ -625,9 +667,12 @@ function registraLog(string $mensagem): void{
 }
 ```
 
+
 #### Escopo e Referência (O segredo da memória)
 
+
 ##### O que é Escopo? (A regra de Las Vegas)
+
 
 *O que acontece dentro da função, fica dentro da função*.
 Uma variável criada fora não existe lá dentro, e uma criada lá dentro morre quando a função acaba.
@@ -683,6 +728,8 @@ A função `saudar()` não conhece a variável global `$nome`. Ocasionando um er
 
 
 --- 
+
+
 
 ### Semana 5 - Arrays e manipulação avançada de dados
 
@@ -804,3 +851,58 @@ Exibe com mais detalhes as informações de um array ou variável em PHP
 echo var_dump($frutas);
 // Mostra tudo: tipo de dados, tamanho e o valor
 ```
+---
+
+### Semana 6 - Processamentos HTTP e Formulários WEB
+
+
+#### Anatomia de um formulário HTML para BackEnd
+
+
+Antes do PHP processar qualquer informação, precisamos coletar informações no FrontEnd através de um `<form>` 
+
+**Exemplo de `<form>` HTML**
+
+```html
+<form action="processa.php" method="POST">
+    <label>Nome Completo</label>
+    <input type="text" id="campoNome" name="nomeUsuario" placeholder="Digite seu nome">
+    <button type="submit">Cadastrar</button>
+</form>
+```
+
+
+**Os 3 pilares do formulário**
+1. action="processa.php" -> O destino: Define qual script PHP no servidor receberá os dados.
+2. method="POST" -> O transporte: Define a via de protocolo HTTP usada (GET ou POST).
+3. name="nomeUsuarios" -> A etiqueta do dado: É o nome da chave que o PHP usará no array associativo ($POST["nomeUsuario"]).
+
+> OBS: Nunca confundir `id` com `name` no input, o PHP ignora o `id`
+
+#### O protocolo HTTP
+
+
+Quando o usuário clica no botão `type="submit"`, o navegador compila todas as informações dos campos preenchidos e dispara um pacote de comunicação padronizado pelo **Protocolo HTTP(Hypertext Transfer Protocol)**
+
+**O formato de transferência**
+
+- **Método GET**: Solicitar informações públicas e realizar buscas, mas altamente arriscada para dados privados.
+
+- **Método POST**: As informações viajam guardads dentro do protocolo
+
+#### Testar o uso dos Protocolos HTTP
+
+OK
+
+#### GET vs POST
+
+1. O Método GET (consultas e filtros)
+
+O método `GET` é utilizado quando a intenção do cliente é **buscar ou filtrar dados** sem alterar o estado do servidor. Os dados enviados via `GET`são anexados diretamente ao final da URL na forma de uma **QueryString** 
+
+2. O método `POST` (envio de cargas úteis e mutações)
+
+O método `POST` é utilizado quando o formulário envia dados que devem ser processados para **criar ou modificar registros** no sistema (ex: cadastro de usuários, finalizações de compras, upload de arquivos)
+
+#### Como os métodos funcionam no PHP (`$_GET`, `$_POST`, `$_SERVER`) - As SuperGlobais
+
