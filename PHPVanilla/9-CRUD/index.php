@@ -79,7 +79,7 @@ $pecas = !empty($termoBusca) ? $pecaDAO->buscarPorTermo($termoBusca) : $pecaDAO-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALmoxarifado SENAI - CRUD Seguro com PDO</title>
+    <title>Almoxarifado SENAI - CRUD Seguro com PDO</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; padding: 30px; color: #0f172a; margin: 0; }
         .container { max-width: 1050px; margin: 0 auto; }
