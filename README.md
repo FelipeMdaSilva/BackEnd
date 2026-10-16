@@ -1455,3 +1455,474 @@ flowchart LR
 
     A -->|"Chama métodos:<br/>salvar(),listar(),excluir()"| B
     B -->|"Executa Prepared Statement<br/>via PDO"| C
+```
+
+---
+
+### Semana 10 - Sessões, Cookies e Autenticação Segura
+
+**Tema:** Gestão de estado com HTTP, Ciclo de Vida da Sessão (`$_SESSION`), Cookies, Hashing de Criptografia, Middlewares de Autenticação
+
+#### **O Protocolo HTTP: Como ele lembra de você?**
+
+O protocolo HTTP é totalmente **STATELESS (sem armazenamento de estado)**. Isso significa que o servidor WEB trata cada requisição HTTP de forma isolada, como se fosse a primeira vez que ele estivesse interagindo com o usuário do sistema.
+
+Para resolver esse problema sem obrigar o usuário a digitar o login e a senha novamente a cada clique, fazemos o seguinte:
+
+1. Ao fazer o login bem-sucedido, o servidor entrega ao cliente uma **comanda/pulseira VIP numerada** (um identificador de sessão única e aleatória).
+
+2. O navegador armazena essa comanda/pulseira em um **Cookie**.
+
+3. A cada nova página solicitada o navegador apresenta automaticamente essa pulseira no cabeçalho da requisição.
+
+4. O PHP lê o número da comanda/pulseira, localiza os dados do usuário armazenados na memória do servidor (`$_SESSION`) e reconhece quem é ele!
+
+**Situação sem armazenamento de Cookie e SESSION**
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cliente as Navegador do Usuário
+    participant Servidor as Servidor PHP/BD
+
+    Cliente ->> Servidor: 1. POST /login.php (Usuário envia email e senha)
+    Servidor ->> Cliente: 2. HTTP 200 OK (Credenciais válidas! Redireciona)
+    Note over Servidor: A conexão TCP é encerrada. O servidor esquece do Usuário
+
+    Cliente ->> Servidor: 3. GET /dashboard.php (Usuário tenta ler os relatórios)
+    Note over Servidor: Servidor: "Quem é você? Nunca te vi antes!"
+    Servidor ->> Cliente: 4. HTTP 302 Redirect -> login.php
+```
+
+**Situação com armazenamento de Cookie e SESSION**
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Navegador as Navegador do Usuário
+    participant PHP as Servidor PHP
+    participant Sessao as Armazenamento de $_SESSION
+
+    Navegador->>PHP: POST /login.php (envia usuário e senha)
+    PHP->>PHP: Valida as credenciais
+    PHP->>Sessao: Armazena os dados do usuário em $_SESSION
+    Sessao-->>PHP: Retorna o ID da sessão
+    PHP-->>Navegador: Resposta com Set-Cookie: PHPSESSID=<ID da sessão>
+    Note over Navegador: Guarda o ID da sessão no cookie
+    Navegador->>PHP: GET /dashboard.php com Cookie: PHPSESSID=<ID da sessão>
+    PHP->>Sessao: Busca os dados associados ao ID da sessão
+    Sessao-->>PHP: Retorna os dados do usuário
+    PHP-->>Navegador: Exibe o dashboard autenticado
+```
+
+#### **Como funciona o Cookie HTTP?**
+
+Um *Cookie* é um pequeno arquivo de texto (geralmente limitado a 4KB) gravado pelo navegador a pedido do servidor através do cabeçalho de resposta `Set-Cookie`.
+
+**Cookies podem vazar informação?**
+
+Sim, se um cookie de sessão for configurado com parâmetros desprotegidos, qualquer script malicioso injetado na página (XSS) pode roubar a sessão do usuário logado.
+
+**Para evitar problemas de Segurança em Cookies:**
+
+| Flag de Segurança | O que ela faz? | Por que é indispensável? |
+| :--- | :--- | :--- |
+| **`HttpOnly`** | Impede que scripts JavaScript executem leitura no cookie via `document.cookie`. | **Neutraliza o roubo de sessão via XSS!** Mesmo que haja uma falha de injeção de script na tela, o navegador proíbe o JavaScript de ler o identificador de sessão. |
+| **`SameSite=Lax`** | Restringe o envio do cookie apenas a navegações originadas do próprio domínio. | **Protege contra ataques CSRF** (*Cross-Site Request Forgery*), impedindo que links externos forjem ações logadas. |
+| **`Secure`** | Garante que o cookie só seja transmitido em conexões criptografadas com **HTTPS**. | Impede que bisbilhoteiros em redes Wi-Fi públicas interceptem a sessão em trânsito (*Man-in-the-Middle*). *(Em ambiente local de desenvolvimento sem SSL, pode ser desativado temporariamente).* |
+
+#### **O ciclo de vida da sessão em PHP: `$_SESSION` no servidor**
+
+Enquanto os cookies residem no navegador, os dados da sessão ficam armazenados com **privacidade total dentro do servidor** (em arquivos temporários na memória).
+
+```mermaid
+flowchart LR
+    subgraph Cliente ["Cliente-Side (Navegador)"]
+        cookie["Cookie de Sessão"]
+    end
+
+    subgraph Servidor["Server-Side (Servidor)"]
+        memoria["SuperGlobal $_SESSION"]
+        disco["Token"]
+    end
+
+    Cliente -->|"Interage com o UI"| cookie
+    cookie -->|"Envia token no Header HTTP"| Servidor
+    Servidor -->|"Lê Token e carrega dados"| memoria
+    memoria <-->|"Persistência em Disco"| disco
+    Servidor -->|"Garante a autenticação do usuário"| Cliente
+
+    style cookie fill:#fed7aa,stroke:#ea580c,stroke-width:2px,color:#7c2d12
+    style memoria fill:#bbf7d0,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style disco fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#1e293b 
+
+```
+
+**Sintaxe Essencial do PHP para Sessões**
+
+```php
+// Configurando a sessão com funções pré-definidas no PHP (documentação)
+
+// 1. Configurar as flags dos cookies antes de abrir a sessão
+session_set_cookie_params([
+    "lifetime" => 0,        // Cookie expira ao fechar o navegador
+    "path"     => "/"       // Válido para todo o domínio do site
+    "httponly" => true      // Proteção contra XSS
+    "sametime" => "Lax"     // Proteção contra CSRF
+]);
+
+// 2. Iniciar ou Restaurar a session ativa
+session_start();
+
+// 3. Gravar os dados na sessão (após validar o login)
+// Usar a superglobal ($_SESSION) para isso
+$_SESSION["usuario_id"] = 10;
+$_SESSION["usuario_perfil"] = "ADMIN";
+
+// 4. Permitir a leitura dos dados em qualquer página do meu site
+$idLogado = $_SESSION["usuario_id"] ?? null; // Se o usuário não tiver feito login a session é null
+```
+
+#### **Criptografia de Senhas**
+
+No passado, desenvolvedores armazenavam senhas utilizando funções matemáticas de integridade como `md5($senha)` ou `sha1($senha)`.
+
+> O MD5 foi quebrado em 2004 e SHA1 foi quebrado em 2017.
+
+**A solução moderna é Criptografia com uso de Hash**
+
+O padrão de criptografia moderno é o **Argon2id**, complementado pelo **Bcrypt**
+
+**Características da Criptografia de Hash**:
+1. **Unidirecional (One-Way):** É matematicamente impossível descriptografar o hash para recuperar a senha original.
+2. **Salt Automático e Aleatório**: A cada execução, a função gera um vetor de `salt` único de 16 bytes. Mesmo que 2 pessoas tenham a mesma senha, os hashes gerados são completamente diferentes!
+3. **Custos ajustáveis**: É possível calibrar quanto tempo e quanta memória o algoritmo levará para calcular o hash.
+
+**Sintaxe Profissional de Cryptografia Moderna**
+
+```php
+$senhaDigitada  = "123456";
+$senhaInformada = $_POST["senha"];
+$hashDoBanco    = $usuario["hash"]
+
+// Gerar o hash utilizando o Argon2id (ou Bcrypt)
+$hash = password_hash($senhaDigitada, PASSWORD_ARGON2ID);
+// Isso será armazenado no banco
+// Saída: $argon2id$v=19$m65536,t=4,p=1$HGj45nfdoi4... (comprimento ~96 a 128 caracteres)
+
+// Processo de verificação
+if (password_verify($senhaInformada, $hashDoBanco)) {
+    // Senha correta
+} else {
+    // Senha incorreta
+}
+
+```
+
+> [!AVISO]
+> Nunca tente fazer (password_hash($senha) === $hashDoBanco)
+> Como o `password_hash` gera um salt aleatório a cada milisegundo, a comparação por igualdade **sempre dará falso**
+> A verificação deve ser feita **exclusivamente com a função nativa `password_verify()`**
+
+#### **Arquitetura de Autenticação: MiddleWare**
+
+Para impedir que visitantes não logados acessem páginas privadas (como dashboard.php ou relatorios.php), criamos interceptadores chamados **Guard (Middlewares de Proteção)**.
+
+```mermaid
+flowchart TD
+    req["Requisição do Navegador<br/>GET(dashboard.php)"] --> guard["Middleware: guard.php"]
+
+    guard --> check1{"$_SESSION[usuario_id existe?]"}
+    check1 -- Não --> kick1["header(login.php)"]
+
+    check1 -- Sim --> allow["header(dashboard.php)"]
+```
+**Como usar o guard.php**:
+
+Em todas as páginas restritas do sistema a **primeira linha de código** após o `declare(strict_types=1)` será:
+
+```php
+require_once __DIR__ . "/src/guard.php";
+```
+Se a pessoa não estiver autenticada ou não tiver o perfil de acesso, ela é expulsa antes mesmo que qualquer bytes de HTML seja renderizado.
+
+### Semana 11 - Programação Orientada a Objetos Em PHP
+
+**Tema:** Paradigma de POO, Os 4 pilares da Orientação a Objetos(Abstração, Encapsulamento, Herança e Polimorfismo), Classes e Instância, Construtores, Modificadores de Acesso (Private, Protected, Public) e Modelagem de Dados.
+
+#### **Do Procedural à Orientação a Objetos**
+
+Manipulação de variáveis, laços de repetição e funções de forma linear, ou seja, todo o código é escrito em um monobloco(`código em um único arquivo de programação`). Essa abordagem resolve problemas lineares com maestria, mas colapsa rapidamente quando sistemas crescem em escala, complexidade e criticidade de regras de negócio. 
+
+Na programação procedural:
+
+1. **Os dados estão expostos:** Qualquer função pode alterar qualquer campo a qualquer momento
+2. **As regras de validação ficam dispersos:** Cada tela precisa checar uma função, gerando dezenas de `if/else` duplicados espalhados pelo código. Se uma regra mudar , o desenvolvedor precisa lembrar de atualizar todos os arquivos do sistema.
+3. **Nã há garantias de invariantes:** É impossível garantir que um dado sempre permaneça em estado consistente.
+
+**O que é Paradigma Orientado a Objetos (POO)?**
+
+Na **POO**, em vez de separar funções de um lado e dados soltos do outro, nós unimos *dados(atributos)* e as *funções que manipulam esses dados(métodos)* dentro de uma única estrutura chamada **Objeto**.
+
+**Quadro Comparativo PRocedural vs POO:**
+
+| Aspecto | Paradigma Procedural | Paradigma Orientado a Objetos (POO) |
+| :--- | :--- | :--- |
+| **Unidade Fundamental** | Procedimentos e Funções soltas | Classes e Objetos |
+| **Proteção de Dados** | Nenhuma (dados globais ou em arrays abertos) | Alta (Encapsulamento com atributos privados) |
+| **Reuso de Código** | Inclusão de scripts (`require_once`) e cópia | Herança (`extends`), Composição e Interfaces |
+| **Tratamento de Variações** | Blocos gigantes de `switch` e `if/else` | Polimorfismo e Classes Abstratas |
+| **Manutenibilidade** | Complexa à medida que a base de código cresce | Alta, modular, testável e pronta para arquiteturas corporativas (MVC, DDD, Clean Architecture) |
+
+#### **Anatomia de uma Classe**
+
+- **Classe**: é molde, a planta baixa, o projeto de engenharia. Ela descreve quais atributos(dados) e comportamentos(métodos) as entidades daquele tipo possuirão. ela reside no código-fonte e não ocupa espaço dinâmico de dados na memória.
+- **Objeto**: é o produto final construido a partir do molde, uma instância real, palpável e viva alocada na memória do servidor durante o ciclo de execução. 
+
+```mermaid
+flowchart TD
+    molde["Classe: ContaBancaria<br/>(Molde / Definição de Atributos e Métodos)"]
+
+    molde -->|"new ContaBancaria()"| obj1["Objeto 1 em Memória<br/>Titular: Carlos<br/>Agência: 001<br/>Saldo: R$1.500,00"]
+    molde -->|"new ContaBancaria()"| obj2["Objeto 2 em Memória<br/>Titular: Douglas<br/>Agência: 001<br/>Saldo: R$4.200,00"]
+    molde -->|"new ContaBancaria()"| obj3["Objeto 3 em Memória<br/>Titular: Eduardo<br/>Agência: 003<br/>Saldo: R$850,00"]
+
+    style molde fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#312e81
+    style obj1 fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d
+    style obj2 fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d
+    style obj3 fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d
+```
+
+**O ciclo de Instancimento de Objetos**
+
+Ao instanciar um objeto com a instrução `new`, o PHP invoca o método construtor especial `__constructor()`. E usamos a palavra-chave `$this` para fazer referência direta e exclusivamente ao **Atributo que está sendo executado pelo código naquele momento**.
+
+```php
+
+class ContaBancaria{
+    //Declaração tradicional de atributos tipados
+    private string $titular;
+    private int $agencia;
+    private float $saldo;
+
+    //Método construtor
+    public function __constructor(string $titular, int $agencia, float $saldo){
+        $this->titular = titular; //$this->titular refere-se ao atributos da classe
+        $this->agencia = agencia; //$this->agencia refere-se ao atributos da classe
+        $this->saldo = saldo; //$this->saldo refere-se ao atributos da classe
+    }
+
+    //método de acesso
+    public funcition getSaldo(): float{
+        return $this->saldo;
+    }
+}
+
+//Instanciando dois objetos completamente independentes
+$conta1 = new ContaBancaria("Carlos", 001, 100.00);
+$conta1 = new ContaBancaria("Douglas", 003, 500.00);
+
+echo $conta1->getSaldo(); //Exibe 100.00
+echo $conta2->getSaldo(); //Exibe 500.00
+```
+
+> [!OBS:]
+> **Alocação de Objetos na Memória**
+> No PHP, variáveis que armazenam objetos, usam um **identificador/referência para o endereço na memória**. Quando você passa um objeto para uma função ou método, está passadno a referência na memória. o que torna o POO extremamanete performático.
+
+#### **Os 4 Pilares da Orientação a Objetos**
+
+```mermaid
+quadrantChart
+    title Os 4 Pilares da Programação Orientada a Objetos
+    x-axis "Conceituação & Estrutura" --> "Comportamentos & Dinâmica"
+    y-axis "Nível Individual" --> "Nível Hierárquico"
+
+    "1. Abstração": [0.25,0.25]
+    "2. Encapsulamento": [0.25, 0.75]
+    "3. Herança": [0.75, 0,75]
+    "4. Polimorfismo": [0.75, 0.25]
+```
+
+1. **Pilar 1: Abstração**
+**Definição:** Capacidade de filtrar detalhes irrelevantes e focar estritamente nas características e comportamentos essenciais da entidade para o contexto do software que está sendo construído.
+Exemplo: Para um sistema bancário, o que importa em um cliente é seu nome, CPF e renda. Sua cor favorita ou altura são irrelevantes e podem ser descartadas.
+
+2. **Pilar 2: Encapsulamento**
+**Definição:** Blindagem do estado interno do objeto. Os atributos devem ser protegidos contra acessos ou modificações diretas do mundo exterior. Alterações no estado só ocorrem através de métodos públicos que validam regras de negócio e mantêm invariantes contábeis.
+
+3. **Pilar 3: Herança**
+**Definição:** Mecanismo pelo qual uma classe filha (subclasse) herda atributos e comportamentos de uma classe ancestral (superclasse), promovendo o reuso de código e estabelecendo uma relação do tipo **É UM**.
+Exemplo: Um cachorro (subclasse) é um mamífero (superclasse), porque ele herda características da classe dos mamíferos.
+
+4. **Pilar 4: Polimorfismo**
+**Definição:** Princípio que permite que classes filhas diferentes respondam à mesma chamada de método com implementações especializadas e comportamentos distintos. O chamador não precisa saber qual subclasse exata está executando, apenas confia que o método cumprirá o contrato.
+
+#### **Encapsulamento Rigoroso**
+
+Os Modificadores de Visibilidade:
+
+| Modificador | Onde pode ser acessado? | Recomendação de Uso |
+| :--- | :--- | :--- |
+| **`private`** | **Apenas** dentro da própria classe que o declarou. Subclasses e scripts externos não conseguem ler nem alterar. | **Padrão ouro para atributos.** Garante proteção absoluta de estado e impede efeitos colaterais. |
+| **`protected`** | Dentro da própria classe e por quaisquer **subclasses que a herdem (`extends`)**. O mundo exterior continua bloqueado. | Usado quando subclasses precisam ler ou ajustar diretamente um valor compartilhado (ex.: `$saldo` em classes filhas de conta). |
+| **`public`** | Acessível livremente por **qualquer parte do sistema**, dentro ou fora da classe. | Usado para os métodos que compõem a **interface pública** do objeto (ações como `sacar()`, `depositar()`, `transferir()`). |
+
+```mermaid
+flowchart TD
+    subgraph ClassePai ["Classe: ContaBancaria"]
+        priv["private: string $segredo<br/>(Apenas ContaBancaria enxerga)"]
+        prot["protected: float $saldo<br/>(ContaBancaria e filhas enxergam)"]
+        pub["public: function depositar()<br/>(Todo o sistema enxerga)"]
+    end
+
+    subgraph ClasseFilha ["Classe: ContaCorrente (extends ContaBancaria)"]
+        filhaMetodo["function sacar()<br/>• Acessa $saldo (protected) ✔<br/>• NÃO acessa $segredo ❌"]
+    end
+
+    subgraph ScriptExterno ["Arquivo de Rota / Controller Externo"]
+        ext["$conta->depositar(100) ✔<br/>$conta->saldo = 500 ❌ (Fatal Error!)"]
+    end
+
+    ClassePai -->|"Herança"| ClasseFilha
+    ScriptExterno -->|"Interação Pública"| pub
+
+    style priv fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    style prot fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+    style pub fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+```
+
+**Usando Getters and Setters**
+
+Ao Declarar Atributos privados se você deseja manipular esses atributos privados é importante criar os modificadores de Acesso através dos *getters and setters*
+
+ao criar um atributos `float $saldo`
+
+para modificar os valores do saldo ou ler o saldo é importante criar os métodos públicos
+
+`public function getSaldo()` : permite consultar o valor do saldo 
+
+`public function setSaldo()` : permite modificar o valor de saldo
+
+>[!Cuidado]
+> **Não destrua seu encapsulamento** : para atributos que não serão modificados como CPF por exemplo não há necesidade de criar um `setCPF` o CPF de uma pessoa não será modificado ao longo da vida. 
+
+**Construtor Property Promotion (Declaração no Construtor)**
+
+No PHP 8.X podemos utilizar recursos modernos que reduzem o código repetitico e elevam  a segurança. o uso do `Property Promotion`no construtor é um exemplo, não precisamos declarar os atributos e depois fazer o construtor, basta declarar os atributos diretamente dentro do construtor 
+
+```php 
+class TitularProperty {
+    public function __construct(
+        private string $nome,
+        private string $cpf
+    ){}
+} 
+// é igual que 
+
+class TitularSemProperty {
+    private string $nome;
+    private string $cpf;
+
+    public function __construct(string $nome, string $cpf){
+        $this->nome = $nome;
+        $this->cpf  = $cpf;
+    }
+}
+
+```
+
+#### **Herança, Classes Abstratas e Polimorfismo**
+
+**Classes Abstratas**: Uma Classe abstrata é uma superclasse conceitual que **Não pode ser instanciada diretamente com `new`**. Ela serve como matriz para que subclasses concretas seja derivadas.
+
+```php
+abstract class ContaBancaria {
+    //classe filhas herdam esta propriedade protegida
+    protected float $saldo;
+
+    public function __construct(float $saldoInicial =0.0){
+        $this->saldo = $saldoInicial;
+    }
+
+    public function getSaldo(): float {
+        return $this->saldo;
+    }
+
+    //método abstrato: Obriga a subclasse a fornecer sua própria implementação
+    abstract public function sacar(float $valor): void;
+}
+
+//Se um objeto da classe ContaBarncaria tentar ser instanciado vai gerar um erro na compilação
+$conta = new ContaBancaria(); //Erro: Cannot instantiate abstract class ContaBancaria
+```
+
+**Herança:** É um mecanismo que permite que uma classe (subclasse) herde atributos e métodos de outra classe (superclasse)
+
+```php
+class ContaCorrente extends ContaBancaria {
+    public function sacar(float $valor): void{
+        //Implementa especificamente para Conta Corrente
+        $this->saldo -= $valor + 2.50; //Taxa de Saque
+    }
+}
+
+class ContaPoupanca extends ContaBancaria {
+    public function sacar(float $valor): void {
+        //Implemeta especificamente para Conta Poupança
+        $this->saldo -= $valor; // não tem taxa de saque
+    }
+}
+
+
+$contaCorrente = new ContaCorrente(1000.00);
+$contaPoupanca = new ContaPoupanca(500.00);
+
+$contaCorrente->sacar(100.00); //Deduz R$ 102,50 do saldo
+$contaPoupanca->sacar(100.00); //Deduz R$ 100,00 do saldo
+
+$contaCorrente->getSaldo(100.00); //Retorna 897,50
+$contaPoupanca->getSaldo(100.00); //Retorna 400,00
+```
+
+> Observe que ambas as classes implementam o método `sacar()` de maneira diferente, respeitando as regras de negócios específicas de cada tipo de conta
+
+**Polimorfismo:** O método `sacar()` na classe ContaBancaria demonstra o polimorfismo em ação
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cliente as Script / Controller
+    participant CC as Conta Origem (ContaCorrente)
+    participant CP as Conta Destino (ContaPoupanca)
+
+    Cliente->>CC: transferir(200.00, $CP)
+    Note over CC: CC executa seu próprio método sacar():<br/>Valida saldo + limite e cobra taxa de R$ 2,50!
+    CC->>CC: sacar(200.00) (Deduz R$ 202,50 do saldo)
+    CC->>CP: depositar(200.00)
+    Note over CP: CP credita R$ 200,00 no seu saldo
+    CC-->>Cliente: Transferência concluída atomicamente!
+```
+
+#### **Exceções de Domínio: Tratamento de Erros do Sistema**
+
+Um dos maiores erros cometidos em sistema procedurais é o retorno mágico de valores como `-1`, `false` ou `null` quando uma regra de negócio é violada.
+
+**Para Corrigir esse Erros Mágicos devemos usar `throw Exception`
+Se o método retornar `false` quando ocorrer um erros o desenvolvedor não fez o tratamento de erros corretamente. Exemplo. Se o `sacar()` retornar `false`quando não houver saldo, o sistema continuará executando como se o dinheiro tivesse saído causando furos de caixa no sistema. Já quando usamos uma **Exceção de Domínio**, a execução é interrompida e feito um tratamento usando um bloco `try/catch`.
+
+```mermaid
+flowchart TD
+    op["Operação: $conta->sacar(5000.00)"] --> check{"Saldo suficiente?"}
+    check -- Sim --> ok["Deduz saldo e prossegue normalmente"]
+    check -- Não --> erro["throw new SaldoInsuficienteException(...)"]
+    
+    erro --> intercept["Interrompe execução imediata!"]
+    intercept --> catchBlock["try { ... } catch (SaldoInsuficienteException $e) {<br/>    // Captura segura e mensagem amigável para o usuário<br/>}"]
+
+    style ok fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style erro fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    style catchBlock fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#312e81
+```
+
+>[!OBS]
+>`try/catch` é o mecanismo de captura de exceções do PHP. Ele permite que você trate erros de forma inteligente, mantendo a integridade do sistema e fornecendo feedback claro ao usuário.
+
