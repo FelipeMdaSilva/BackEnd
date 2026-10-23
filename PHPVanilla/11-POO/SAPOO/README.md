@@ -17,3 +17,15 @@ SAPOO/
 ├── app_banco.php                               <- Simulador visual de operações bancárias
 └── README.md                                   <- Documentação e testes
 ```
+
+## Criação das exceções de domínio
+
+## Entidade de titularidade com imutabilidade (`readonly`)
+
+## Criação da SuperClasse abstrata de conta bancaria
+
+## Criação das classes herdeiras
+
+## Criação da tela visual
+
+Desafios
